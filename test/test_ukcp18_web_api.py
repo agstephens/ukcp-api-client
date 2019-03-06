@@ -3,6 +3,8 @@ import urllib2
 import re
 import copy
 import time
+import xml.etree.ElementTree as ET
+
 
 API_KEY = os.environ.get('API_KEY', None)
 
@@ -11,8 +13,6 @@ if not API_KEY:
 
 
 BASE_URL = 'https://ukclimateprojections-ui.metoffice.gov.uk'
-
-#https://ukclimateprojections-ui.metoffice.gov.uk/wps/Execute?Request=Execute&Identifier=LS1_Maps_01&Format=text/xml&Inform=true&Store=false&Status=false&DataInputs=TemporalAverage=jja;Baseline=b8100;Scenario=rcp45;Area=bbox|-84667.14|-114260.00|676489.68|1230247.30;SpatialSelectionType=bbox;TimeSliceDuration=20y;DataFormat=csv;FontSize=m;Collection=land-prob;TimeSlice=2060-2079;ShowBoundaries=country;Variable=prAnom;ImageSize=1200;ImageFormat=png&ApiKey=Cp0UHFTPM1HXVhh5wXv-b7z2utHdd473
 
 URL_TEMPLATE = ('{base_url}/wps/Execute?'
     'Request=Execute&Identifier={proc_id}&Format=text/xml&Inform=true&Store=false&'
@@ -65,13 +65,13 @@ def _call_api_expect_429(proc_id, **kwargs):
 
 def _call_api_get_status_url(proc_id, **kwargs):
     url, xml_doc = _call_api(proc_id, **kwargs)
+    root = ET.fromstring(xml_doc)
 
-    match = re.search('statusLocation="(.+?)"\s', xml_doc, re.DOTALL | re.MULTILINE)
+    status_url = root.get("statusLocation", None)
 
-    if not match:
+    if not status_url:
         raise Exception('Could not get valid response for request: {}'.format(url))
 
-    status_url = match.groups()[0]
     return status_url
     
 
