@@ -31,3 +31,11 @@ Run the simple test:
 python run_1_request.py
 ```
 
+## API Request Workflow
+
+The following diagram explains the workflow for API Requests:
+
+![alt text](https://github.com/agstephens/ukcp-api-client/raw/master/doc/images/api_flowchart.png "API Flowchart")
+
+
+
