@@ -112,6 +112,7 @@ def _get_zip_file_url(xml_doc):
     raise Exception('Could not find Zip File location')
 
 
+
 def _download_output(url):
     # Append API Key
     url += '?ApiKey={}'.format(API_KEY)

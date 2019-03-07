@@ -169,6 +169,9 @@ _XML = """<?xml version="1.0" encoding="UTF-8"?>
 		</ProcessOutputs>
 </ExecuteResponse>"""
 
+_NS = '{http://www.opengeospatial.net/wps}'
+
+
 
 def _tmp_xml_file(tmp_dir):
     p = tmp_dir.mkdir('tmpfiles').join('test.xml')
@@ -197,10 +200,18 @@ def test_get_status_url():
       'https://ukclimateprojections-ui.metoffice.gov.uk/status/4aa3b60afa489a11b9772c8a1d956625')
 
 
+def test_get_status_from_xml():
+    root = ET.fromstring(_XML)
+    qual_status = root.find(_NS + 'Status')[0].tag
+    status = qual_status.replace(_NS, '')
+
+    assert(status == 'ProcessSucceeded') 
+
+
 def _get_zip_file_url(xml_file):
     root = ET.parse(xml_file).getroot()
     
-    file_url_element = '{http://www.opengeospatial.net/wps}FileURL'
+    file_url_element = _NS + 'FileURL'
 
     for file_url in root.iter(file_url_element):
         if file_url.text.endswith('.zip'):
