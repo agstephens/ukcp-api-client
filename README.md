@@ -1,2 +1,2 @@
-# ukcp18-api-client
-UKCP18 API Client
+# ukcp-api-client
+UKCP API Client
