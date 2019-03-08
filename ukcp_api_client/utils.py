@@ -26,6 +26,8 @@ FAILED_STATUS = 'ProcessFailed'
 
 # Element Tree uses qualified namespaces for XML search, so define it
 NS = '{http://www.opengeospatial.net/wps}'
+OWS_NS = '{http://www.opengeospatial.net/ows}'
+OWS_ERROR_NS = '{http://www.opengis.net/ows/1.1}'
 POLLING_PAUSE = 2
 
 
@@ -56,7 +58,13 @@ def get_status_url(xml):
     status_url = root.get('statusLocation', None)
 
     if not status_url:
-        raise ValueError('Could not get status URL from response.')
+        # Attempt to get error message
+        try: 
+            message = root.iter(OWS_ERROR_NS + 'ExceptionText').next().text
+        except Exception:
+            message = ('Could not get status URL from response.')
+
+        raise Exception('Request failed: {}'.format(message))
 
     return status_url
 
@@ -72,7 +80,12 @@ def get_status_and_message(xml):
     root = ET.fromstring(xml)
     qual_status = root.find(NS + 'Status')[0]
     status = qual_status.tag.replace(NS, '')
-    message = qual_status.text
+
+    # Failed status requires extra work to get message
+    if status == FAILED_STATUS:
+        message = qual_status.iter(OWS_NS + 'ExceptionText').next().text
+    else:
+        message = qual_status.text
 
     if status not in KNOWN_STATUS_VALUES:
         raise ValueError('Unknown status value: {}'.format(status))

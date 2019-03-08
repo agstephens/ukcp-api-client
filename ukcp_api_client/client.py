@@ -114,7 +114,7 @@ class UKCPApiClient(object):
         # Poll until a known status is found
         status, xml = poll_until_ready(status_url)
 
-        # Respond to failure if
+        # Respond to failure if it failed
         if status == FAILED_STATUS:
             return self._respond_to_failure(xml, request_url)
 
@@ -132,8 +132,8 @@ class UKCPApiClient(object):
         :return: None
         """
         _, message = get_status_and_message(xml)
-        log.error('Failed to process request: {}'.format(request_url))
-        log.error('The process failed with error message: "{}"'.format(message))
+        raise Exception('Failed to process request: {}\nThe process failed with error message: "{}"'
+                        .format(request_url, message))
 
     def _save_outputs(self, xml):
         """

@@ -1,9 +1,9 @@
 import os
 import urllib2
-import re
-import copy
 import time
 import xml.etree.ElementTree as ET
+
+from ukcp_api_client.client import UKCPApiClient
 
 
 API_KEY = os.environ.get('API_KEY', None)
@@ -147,3 +147,30 @@ def test_5_calls():
         time.sleep(0.2)
         _call_api_expect_429('LS1_Maps_01')
 
+
+def test_fail_when_running():
+    cli = UKCPApiClient(outputs_dir='my-outputs', api_key=API_KEY)
+
+    request_url = 'https://ukclimateprojections-ui.metoffice.gov.uk/wps/Execute?' \
+                  'Request=Execute&Identifier=LS3_Subset_01&Format=text/xml&Inform=true&Store=false&' \
+                  'Status=false&DataInputs=TemporalAverage=jan;Area=bbox|474459.24|246518.35|' \
+                  '474459.24|246518.35;Collection=land-rcm;ClimateChangeType=absolute;' \
+                  'EnsembleMemberSet=land-rcm;DataFormat=csv;TimeSlice=2075|2076;Variable=psl'
+
+    try:
+        cli.submit(request_url)
+    except Exception as err:
+        last_line = str(err).split('\n')[-1].strip()
+        assert(last_line == 'The process failed with error message: "IndexError= too many indices for array"')
+
+
+def test_fail_on_submit():
+    cli = UKCPApiClient(outputs_dir='my-outputs', api_key=API_KEY)
+
+    request_url = 'https://ukclimateprojections-ui.metoffice.gov.uk/wps/Execute?' \
+                  'Request=Execute&Identifier=Rubbish&Format=text/xml&Inform=true&Store=false'
+
+    try:
+        cli.submit(request_url)
+    except Exception as err:
+        assert(str(err) == 'Request failed: InvalidParameterValue: Identifier not found (None)')
